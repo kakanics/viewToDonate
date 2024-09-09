@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'screen1.dart';
+import 'screen2.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   runApp(MyApp());
 }
 
@@ -21,8 +26,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final List<Widget> _screens = [
-    Center(child: Text('Screen 1: Welcome to Flutter!')),
-    Center(child: Text('Screen 2: Here we go again!')),
+    Screen1(),
+    Screen2(),
   ];
 
   void _onTabTapped(int index) {
@@ -44,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Screen 1',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.business),
+            icon: Icon(Icons.article),
             label: 'Screen 2',
           ),
         ],
