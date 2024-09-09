@@ -1,12 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'screen1.dart';
 import 'screen2.dart';
-import 'theme.dart'; // Import the theme file
+import 'theme.dart';
 
-void main() {
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
+
+  // Initialize the local notifications
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    // Replaced onSelectNotification with onDidReceiveNotificationResponse
+    onDidReceiveNotificationResponse:
+        (NotificationResponse notificationResponse) async {
+      // Handle notification tapped logic here
+    },
+  );
+
   runApp(MyApp());
 }
 
@@ -57,11 +79,11 @@ class _HomeScreenState extends State<HomeScreen> {
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Screen 1',
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.article),
-            label: 'Screen 2',
+            label: 'Article',
           ),
         ],
       ),

@@ -3,61 +3,68 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'theme.dart'; // Import the theme file
 
 class Screen2 extends StatelessWidget {
+  // Expose font size and color controls in the code
+  final double _fontSize = 16.0;
+  final Color _fontColor = AppColors.black100;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Screen 2',
-          style: TextStyle(
-            fontFamily: AppFonts.pbold,
-            color: AppColors.secondary,
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black,
+              image: DecorationImage(
+                image: AssetImage(
+                    'assets/background.jpg'), // Replace with your image asset
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.5),
+                  BlendMode.dstATop,
+                ),
+              ),
+            ),
           ),
-        ),
-        backgroundColor: AppColors.primary,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(
-                'assets/background.jpg'), // Replace with your image asset
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: FutureBuilder<DocumentSnapshot>(
-          future: FirebaseFirestore.instance
-              .collection('articles')
-              .doc('articleId')
-              .get(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            }
-            if (!snapshot.hasData ||
-                snapshot.data == null ||
-                !snapshot.data!.exists) {
-              return Center(
-                child: Text(
-                  'No article found',
-                  style: TextStyle(
-                    fontFamily: AppFonts.pregular,
-                    color: AppColors.black100,
+          FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance
+                .collection('articles')
+                .doc('articleId')
+                .get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData ||
+                  snapshot.data == null ||
+                  !snapshot.data!.exists) {
+                return Center(
+                  child: Text(
+                    'No article found',
+                    style: TextStyle(
+                      fontFamily: AppFonts.pregular,
+                      color: _fontColor,
+                      fontSize: _fontSize,
+                    ),
+                  ),
+                );
+              }
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SingleChildScrollView(
+                  child: Text(
+                    snapshot.data!['content'],
+                    style: TextStyle(
+                      fontFamily: AppFonts.pregular,
+                      color: _fontColor,
+                      fontSize: _fontSize,
+                    ),
                   ),
                 ),
               );
-            }
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                snapshot.data!['content'],
-                style: TextStyle(
-                  fontFamily: AppFonts.pregular,
-                  color: AppColors.black100,
-                ),
-              ),
-            );
-          },
-        ),
+            },
+          ),
+        ],
       ),
     );
   }
