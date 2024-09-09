@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "292822995515",
+    "project_id": "viewtodonate-e5a16",
+    "storage_bucket": "viewtodonate-e5a16.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:292822995515:android:34f8a4e89e2c241a78821e",
+        "android_client_info": {
+          "package_name": "com.example.view_to_donate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIs0_WSmjrnAfOLHo7qRAdpKaxF_JZ0ps"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
