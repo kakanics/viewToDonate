@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screen1.dart';
 import 'screen2.dart';
+import 'theme.dart'; // Import the theme file
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        primaryColor: AppColors.primary,
+        fontFamily: AppFonts.pregular,
+        textTheme: TextTheme(
+          bodyLarge: TextStyle(fontFamily: AppFonts.pregular),
+          bodyMedium: TextStyle(fontFamily: AppFonts.plight),
+          displayLarge: TextStyle(fontFamily: AppFonts.pbold),
+          displayMedium: TextStyle(fontFamily: AppFonts.psemibold),
+        ),
+      ),
       home: HomeScreen(),
     );
   }
