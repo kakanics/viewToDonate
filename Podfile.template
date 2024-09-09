@@ -4,7 +4,10 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  # Flutter-specific configuration
+  flutter_application_path = '../..'
+  load File.join(flutter_application_path, 'ios', 'Flutter', 'podhelper.rb')
 
-  # Add additional pods here if needed
+  # Ensure pod install runs successfully
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
