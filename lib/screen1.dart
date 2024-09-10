@@ -15,7 +15,7 @@ class _Screen1State extends State<Screen1> {
 
   // Expose font size and color controls in the code
   final double _fontSize = 32.0;
-  final Color _fontColor = AppColors.secondary100;
+  final Color _fontColor = AppColors.gray100;
 
   int _adCounter = 5;
   Timer? _notificationTimer;

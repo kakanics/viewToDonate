@@ -6,8 +6,7 @@
 
     <application
         android:label="View to Donate"
-        android:name=".MainActivity"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"> <!-- Removed android:name attribute -->
 
         <activity
             android:name=".MainActivity"
