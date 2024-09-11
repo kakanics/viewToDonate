@@ -1,0 +1,16 @@
+platform :ios, '11.0'
+
+# CocoaPods analytics sends network stats synchronously affecting Flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  # Add additional pods here if needed, e.g., AdMob, mediation networks, etc.
+  # pod 'Google-Mobile-Ads-SDK'
+  # pod 'AdsterraSDK'
+  # pod 'LiftoffMonetizeSDK'
+end

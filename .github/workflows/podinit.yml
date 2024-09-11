@@ -1,0 +1,26 @@
+name: Create Podfile
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  setup:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up CocoaPods
+        run: |
+          sudo gem install cocoapods
+          mkdir -p ios
+          cd ios
+          pod init
+
+      - name: Verify Podfile creation
+        run: |
+          cat ios/Podfile
