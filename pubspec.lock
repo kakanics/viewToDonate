@@ -240,6 +240,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.0"
+<<<<<<< HEAD
   path_provider_linux:
     dependency: transitive
     description:
@@ -264,6 +265,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+=======
+>>>>>>> 02cc1604e77a52fd23fa323bba5a3e22c34a3432
   petitparser:
     dependency: transitive
     description:
@@ -272,6 +275,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.2"
+<<<<<<< HEAD
   platform:
     dependency: transitive
     description:
@@ -280,6 +284,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.5"
+=======
+>>>>>>> 02cc1604e77a52fd23fa323bba5a3e22c34a3432
   plugin_platform_interface:
     dependency: transitive
     description:
@@ -288,6 +294,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+<<<<<<< HEAD
   shared_preferences:
     dependency: "direct main"
     description:
@@ -344,6 +351,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.1"
+=======
+>>>>>>> 02cc1604e77a52fd23fa323bba5a3e22c34a3432
   sky_engine:
     dependency: transitive
     description: flutter
