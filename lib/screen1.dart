@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'theme.dart'; // Import the theme file
 
@@ -12,6 +13,23 @@ class Screen1 extends StatefulWidget {
 class _Screen1State extends State<Screen1> {
   late BannerAd _bannerAd;
   bool _isBannerAdReady = false;
+
+  //Functions Related to Storage of Ad Counter
+  Future<void> _loadAdCounter() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedAdCounter =
+        prefs.getInt('adCounter') ?? 5; // Default to 5 if not found
+    print('Loaded ad counter: $savedAdCounter'); // Debugging line
+    setState(() {
+      _adCounter = savedAdCounter;
+    });
+  }
+
+  Future<void> _saveAdCounter() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('adCounter', _adCounter);
+    print('Saved ad counter: $_adCounter'); // Debugging line
+  }
 
   // Expose font size and color controls in the code
   final double _fontSize = 20.0;
@@ -27,6 +45,7 @@ class _Screen1State extends State<Screen1> {
   @override
   void initState() {
     super.initState();
+    _loadAdCounter(); // Load the ad counter from local storage
 
     // Initialize the banner ad with your actual Ad Unit ID
     _bannerAd = BannerAd(
@@ -96,6 +115,7 @@ class _Screen1State extends State<Screen1> {
         },
       ),
     );
+    _saveAdCounter(); // Save the ad counter to local storage before disposing
   }
 
   void _sendNotification(String message) async {
@@ -120,9 +140,11 @@ class _Screen1State extends State<Screen1> {
 
   void _startNotificationTimer() {
     _notificationTimer?.cancel();
-    _notificationTimer = Timer(Duration(seconds: 10), () {
+    _notificationTimer = Timer(Duration(seconds: 30), () {
       if (_adCounter > 0 && _adCounter <= 5) {
         _sendNotification("Watch $_adCounter more ads to reach today's target");
+      } else {
+        _sendNotification("Extra ad watched");
       }
     });
   }
@@ -130,7 +152,8 @@ class _Screen1State extends State<Screen1> {
   @override
   void dispose() {
     _bannerAd.dispose();
-    _notificationTimer?.cancel();
+    // _notificationTimer?.cancel();
+    _saveAdCounter(); // Save the ad counter to local storage before disposing
     super.dispose();
   }
 
