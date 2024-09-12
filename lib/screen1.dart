@@ -12,35 +12,22 @@ class Screen1 extends StatefulWidget {
 
 class _Screen1State extends State<Screen1> {
   late BannerAd _bannerAd;
+  RewardedAd? _rewardedAd;
   bool _isBannerAdReady = false;
+  bool _isBannerAdFailed = false;
+  bool _isLoadingAd = false;
+  bool _isRewardedAdReady = false;
 
-  //Functions Related to Storage of Ad Counter
-  Future<void> _loadAdCounter() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedAdCounter =
-        prefs.getInt('adCounter') ?? 5; // Default to 5 if not found
-    print('Loaded ad counter: $savedAdCounter'); // Debugging line
-    setState(() {
-      _adCounter = savedAdCounter;
-    });
-  }
-
-  Future<void> _saveAdCounter() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('adCounter', _adCounter);
-    print('Saved ad counter: $_adCounter'); // Debugging line
-  }
-
-  // Expose font size and color controls in the code
-  final double _fontSize = 20.0;
-  final Color _fontColor = AppColors.gray100;
-
-  int _adCounter = 5;
+  int _adCounter = 0;
   Timer? _notificationTimer;
+  Timer? _adLoadTimer;
 
   // Initialize the FlutterLocalNotificationsPlugin
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+
+  final double _fontSize = 20.0;
+  final Color _fontColor = AppColors.gray100;
 
   @override
   void initState() {
@@ -57,14 +44,22 @@ class _Screen1State extends State<Screen1> {
         onAdLoaded: (_) {
           setState(() {
             _isBannerAdReady = true;
+            _isBannerAdFailed = false;
           });
         },
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
+          setState(() {
+            _isBannerAdReady = false;
+            _isBannerAdFailed = true;
+          });
           print('Failed to load a banner ad: ${error.message}');
         },
       ),
     )..load();
+
+    // Prefetch the rewarded ad
+    _loadRewardedAd();
 
     // Initialize local notifications
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -73,49 +68,128 @@ class _Screen1State extends State<Screen1> {
         InitializationSettings(android: initializationSettingsAndroid);
     flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-    // Reset the ad counter at midnight
-    _resetAdCounterAtMidnight();
+    // Check if the ad counter needs to be reset
+    _checkAndResetAdCounter();
   }
 
-  void _resetAdCounterAtMidnight() {
-    final now = DateTime.now();
-    final midnight = DateTime(now.year, now.month, now.day + 1);
-    final durationUntilMidnight = midnight.difference(now);
-
-    Timer(durationUntilMidnight, () {
-      setState(() {
-        _adCounter = 5;
-      });
-      _resetAdCounterAtMidnight();
+  Future<void> _loadAdCounter() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedAdCounter =
+        prefs.getInt('adCounter') ?? 0; // Default to 0 if not found
+    print('Loaded ad counter: $savedAdCounter'); // Debugging line
+    setState(() {
+      _adCounter = savedAdCounter;
     });
   }
 
-  void _showRewardedAd() {
+  Future<void> _saveAdCounter() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('adCounter', _adCounter);
+    print('Saved ad counter: $_adCounter'); // Debugging line
+  }
+
+  Future<void> _checkAndResetAdCounter() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastResetDate = prefs.getString('lastResetDate') ?? '';
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day).toString();
+
+    if (lastResetDate != today) {
+      setState(() {
+        _adCounter = 0;
+      });
+      await prefs.setString('lastResetDate', today);
+      await _saveAdCounter();
+      print('Ad counter reset to 0');
+    }
+  }
+
+  void _loadRewardedAd() {
+    _adLoadTimer?.cancel();
+    _adLoadTimer = Timer(Duration(seconds: 5), () {
+      if (!_isRewardedAdReady) {
+        setState(() {
+          _isLoadingAd = false;
+        });
+        _showAdFailedDialog();
+      }
+    });
+
     RewardedAd.load(
       adUnitId:
           'ca-app-pub-6158090375855987/1542472608', // Replace with your actual Rewarded Ad Unit ID
       request: AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (RewardedAd ad) {
-          ad.show(
-            onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-              setState(() {
-                _adCounter--;
-              });
-              if (_adCounter == 0) {
-                _sendNotification(
-                    "Congratulations, you've done enough for today");
-              }
-            },
-          );
-          _startNotificationTimer();
+          _adLoadTimer?.cancel();
+          setState(() {
+            _rewardedAd = ad;
+            _isRewardedAdReady = true;
+          });
+          if (_isLoadingAd) {
+            _showRewardedAd();
+          }
         },
         onAdFailedToLoad: (LoadAdError error) {
+          _adLoadTimer?.cancel();
           print('Failed to load a rewarded ad: ${error.message}');
         },
       ),
     );
-    _saveAdCounter(); // Save the ad counter to local storage before disposing
+  }
+
+  void _showRewardedAd() {
+    if (_rewardedAd != null) {
+      _rewardedAd!.show(
+        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+          setState(() {
+            _adCounter++;
+          });
+          if (_adCounter == 5) {
+            _sendNotification("Congratulations, you've done enough for today");
+          }
+        },
+      );
+      _startNotificationTimer();
+      // Prefetch the next rewarded ad
+      _loadRewardedAd();
+    } else {
+      _showAdFailedDialog();
+    }
+    setState(() {
+      _isLoadingAd = false;
+    });
+  }
+
+  void _showAdFailedDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.primary, // Set dialog background color
+          title: Text(
+            'Ad Load Failed',
+            style: TextStyle(color: Colors.white), // Set title text color
+          ),
+          content: Text(
+            'Failed to load ad. Please try again later.',
+            style: TextStyle(color: Colors.white), // Set content text color
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'OK',
+                style: TextStyle(color: Colors.blue), // Set button text color
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _sendNotification(String message) async {
@@ -152,6 +226,8 @@ class _Screen1State extends State<Screen1> {
   @override
   void dispose() {
     _bannerAd.dispose();
+    _rewardedAd?.dispose();
+    _adLoadTimer?.cancel();
     // _notificationTimer?.cancel();
     _saveAdCounter(); // Save the ad counter to local storage before disposing
     super.dispose();
@@ -254,20 +330,41 @@ class _Screen1State extends State<Screen1> {
                     height: _bannerAd.size.height.toDouble(),
                     width: _bannerAd.size.width.toDouble(),
                     child: AdWidget(ad: _bannerAd),
-                  ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _showRewardedAd,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.secondary, // Background color
-                    foregroundColor: AppColors.primary, // Text color
-                    textStyle: TextStyle(
-                      fontFamily: AppFonts.pbold,
+                  )
+                else if (_isBannerAdFailed)
+                  Text(
+                    'Failed to load banner ad',
+                    style: TextStyle(
+                      fontFamily: AppFonts.pregular,
+                      color: Colors.red,
+                      fontSize: 16,
                     ),
                   ),
-                  child: Text('View Ad'),
-                ),
-                SizedBox(height: 25),
+                SizedBox(height: 15),
+                _isLoadingAd
+                    ? CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _isLoadingAd = true;
+                          });
+                          if (_isRewardedAdReady) {
+                            _showRewardedAd();
+                          } else {
+                            _loadRewardedAd();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              AppColors.secondary, // Background color
+                          foregroundColor: AppColors.primary, // Text color
+                          textStyle: TextStyle(
+                            fontFamily: AppFonts.pbold,
+                          ),
+                        ),
+                        child: Text('View Ad'),
+                      ),
+                SizedBox(height: 20),
               ],
             ),
           ),

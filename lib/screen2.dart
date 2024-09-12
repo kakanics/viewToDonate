@@ -3,9 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'theme.dart'; // Import the theme file
 
 class Screen2 extends StatelessWidget {
-  // Expose font size and color controls in the code
-  final double _fontSize = 16.0;
-  final Color _fontColor = AppColors.black100;
+  final double _fontSize = 20.0; // Article text font size
+  final Color _fontColor = AppColors.gray100; // Text color
+  final double marginTop =
+      50.0; // Variable to control top margin for the heading
 
   @override
   Widget build(BuildContext context) {
@@ -16,8 +17,7 @@ class Screen2 extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.black,
               image: DecorationImage(
-                image: AssetImage(
-                    'assets/background.jpg'), // Replace with your image asset
+                image: AssetImage('assets/background.jpg'),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
                   Colors.black.withOpacity(0.5),
@@ -29,7 +29,7 @@ class Screen2 extends StatelessWidget {
           FutureBuilder<DocumentSnapshot>(
             future: FirebaseFirestore.instance
                 .collection('articles')
-                .doc('articleId')
+                .doc('articleId') // Replace with your actual document ID
                 .get(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -49,17 +49,40 @@ class Screen2 extends StatelessWidget {
                   ),
                 );
               }
+
+              String heading = snapshot.data!['heading'] ?? 'No Heading';
+              String content = snapshot.data!['text'] ?? 'No Content';
+
               return Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: SingleChildScrollView(
-                  child: Text(
-                    snapshot.data!['content'],
-                    style: TextStyle(
-                      fontFamily: AppFonts.pregular,
-                      color: _fontColor,
-                      fontSize: _fontSize,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: marginTop), // Apply top margin
+                    Text(
+                      heading,
+                      style: TextStyle(
+                        fontFamily: AppFonts.pextrabold,
+                        color: AppColors.white,
+                        fontSize: 28,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
+                    SizedBox(height: 20),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Text(
+                          content,
+                          style: TextStyle(
+                            fontFamily: AppFonts.pregular,
+                            color: _fontColor,
+                            fontSize: _fontSize,
+                          ),
+                          textAlign: TextAlign.left,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               );
             },
