@@ -97,7 +97,7 @@ class _Screen1State extends State<Screen1> {
 
     if (lastResetDate != today) {
       setState(() {
-        _adCounter = 0;
+        _adCounter = 5;
       });
       await prefs.setString('lastResetDate', today);
       await _saveAdCounter();
