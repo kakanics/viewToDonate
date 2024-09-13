@@ -75,7 +75,7 @@ class _Screen1State extends State<Screen1> {
   Future<void> _loadAdCounter() async {
     final prefs = await SharedPreferences.getInstance();
     final savedAdCounter =
-        prefs.getInt('adCounter') ?? 0; // Default to 0 if not found
+        prefs.getInt('adCounter') ?? 5; // Default to 0 if not found
     print('Loaded ad counter: $savedAdCounter'); // Debugging line
     setState(() {
       _adCounter = savedAdCounter;
@@ -144,11 +144,15 @@ class _Screen1State extends State<Screen1> {
       _rewardedAd!.show(
         onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
           setState(() {
-            _adCounter++;
+            _adCounter--;
+            _saveAdCounter();
+            if (_adCounter == 0) {
+              _sendNotification(
+                  "Congratulations, you've done enough for today");
+            } else if (_adCounter < 0) {
+              _adCounter = -1; // Ensure it only goes to -1 once
+            }
           });
-          if (_adCounter == 5) {
-            _sendNotification("Congratulations, you've done enough for today");
-          }
         },
       );
       _startNotificationTimer();
@@ -215,11 +219,9 @@ class _Screen1State extends State<Screen1> {
   void _startNotificationTimer() {
     _notificationTimer?.cancel();
     _notificationTimer = Timer(Duration(seconds: 30), () {
-      if (_adCounter > 0 && _adCounter <= 5) {
+      if (_adCounter > 0 && _adCounter < 5) {
         _sendNotification("Watch $_adCounter more ads to reach today's target");
-      } else {
-        _sendNotification("Extra ad watched");
-      }
+      } else if (_adCounter == 5) {}
     });
   }
 
