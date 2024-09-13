@@ -54,6 +54,9 @@ repositories {
 
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:33.2.0')
+    implementation  'com.google.ads.mediation:vungle:7.4.1.0'
     implementation 'com.vungle:vungle-ads:7.4.0'
     implementation 'com.google.firebase:firebase-analytics'
+
+
 }
