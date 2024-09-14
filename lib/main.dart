@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -8,7 +9,7 @@ import 'screen2.dart';
 import 'theme.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
+FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,12 +20,19 @@ void main() async {
   MobileAds.instance.initialize().then((initializationStatus) {
     initializationStatus.adapterStatuses.forEach((key, value) {
       debugPrint('Adapter status for $key: ${value.description}');
+      if (value.state == AdapterInitializationState.notReady) {
+        debugPrint('Adapter $key failed to initialize: ${value.description}');
+      } else if (value.state == AdapterInitializationState.ready) {
+        debugPrint('Adapter $key successfully initialized.');
+      }
     });
+  }).catchError((error) {
+    debugPrint('Failed to initialize Mobile Ads: $error');
   });
 
   // Initialize the local notifications
   const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
+  AndroidInitializationSettings('@mipmap/ic_launcher');
 
   final InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
@@ -32,14 +40,41 @@ void main() async {
 
   await flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
-    // Replaced onSelectNotification with onDidReceiveNotificationResponse
     onDidReceiveNotificationResponse:
         (NotificationResponse notificationResponse) async {
       // Handle notification tapped logic here
+      debugPrint('Notification tapped: ${notificationResponse.payload}');
     },
-  );
+  ).catchError((error) {
+    debugPrint('Failed to initialize local notifications: $error');
+  });
 
   runApp(MyApp());
+
+  // Set GDPR and CCPA statuses
+  await setGDPRStatus(true, "v1.0.0");
+  await setCCPAStatus(true);
+}
+
+Future<void> setGDPRStatus(bool status, String version) async {
+  const platform = MethodChannel('com.example.view_to_donate/privacy');
+  try {
+    await platform
+        .invokeMethod('setGDPRStatus', {'status': status, 'version': version});
+    debugPrint('GDPR status set to $status with version $version.');
+  } on PlatformException catch (e) {
+    debugPrint("Failed to set GDPR status: '${e.message}'.");
+  }
+}
+
+Future<void> setCCPAStatus(bool status) async {
+  const platform = MethodChannel('com.example.view_to_donate/privacy');
+  try {
+    await platform.invokeMethod('setCCPAStatus', {'status': status});
+    debugPrint('CCPA status set to $status.');
+  } on PlatformException catch (e) {
+    debugPrint("Failed to set CCPA status: '${e.message}'.");
+  }
 }
 
 class MyApp extends StatelessWidget {

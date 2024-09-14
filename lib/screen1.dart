@@ -3,6 +3,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+import 'dart:math'; // Import for random number generation
 import 'theme.dart'; // Import the theme file
 
 class Screen1 extends StatefulWidget {
@@ -34,6 +35,13 @@ class _Screen1State extends State<Screen1> {
     super.initState();
     _loadAdCounter(); // Load the ad counter from local storage
 
+    // Configure test device IDs
+    MobileAds.instance.updateRequestConfiguration(
+      RequestConfiguration(
+        testDeviceIds: ['8570202E5C18D851621857424F803186'],
+      ),
+    );
+
     // Initialize the banner ad with your actual Ad Unit ID
     _bannerAd = BannerAd(
       adUnitId:
@@ -41,13 +49,14 @@ class _Screen1State extends State<Screen1> {
       request: AdRequest(),
       size: AdSize.banner,
       listener: BannerAdListener(
-        onAdLoaded: (_) {
+        onAdLoaded: (Ad ad) {
           setState(() {
             _isBannerAdReady = true;
             _isBannerAdFailed = false;
           });
+          _logAdNetworkInfo(ad); // Log ad network info
         },
-        onAdFailedToLoad: (ad, error) {
+        onAdFailedToLoad: (Ad ad, LoadAdError error) {
           ad.dispose();
           setState(() {
             _isBannerAdReady = false;
@@ -70,6 +79,28 @@ class _Screen1State extends State<Screen1> {
 
     // Check if the ad counter needs to be reset
     _checkAndResetAdCounter();
+  }
+
+  void _logAdNetworkInfo(Ad ad) {
+    final responseInfo = ad.responseInfo;
+    if (responseInfo != null) {
+      final adapterClassName = responseInfo.mediationAdapterClassName;
+      print('Ad served by: $adapterClassName');
+
+      if (adapterClassName != null) {
+        if (adapterClassName.contains("AdMob")) {
+          print('Ad served by: AdMob');
+        } else if (adapterClassName.contains("Vungle")) {
+          print('Ad served by: Liftoff Monetize (Vungle)');
+        } else {
+          print('Ad served by an unknown network');
+        }
+      } else {
+        print('Adapter class name is null');
+      }
+    } else {
+      print('No response info available');
+    }
   }
 
   Future<void> _loadAdCounter() async {
@@ -106,33 +137,20 @@ class _Screen1State extends State<Screen1> {
   }
 
   void _loadRewardedAd() {
-    _adLoadTimer?.cancel();
-    _adLoadTimer = Timer(Duration(seconds: 5), () {
-      if (!_isRewardedAdReady) {
-        setState(() {
-          _isLoadingAd = false;
-        });
-        _showAdFailedDialog();
-      }
-    });
-
+    AdRequest request = AdRequest();
     RewardedAd.load(
       adUnitId:
           'ca-app-pub-6158090375855987/1542472608', // Replace with your actual Rewarded Ad Unit ID
-      request: AdRequest(),
+      request: request,
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (RewardedAd ad) {
-          _adLoadTimer?.cancel();
           setState(() {
             _rewardedAd = ad;
             _isRewardedAdReady = true;
           });
-          if (_isLoadingAd) {
-            _showRewardedAd();
-          }
+          _logAdNetworkInfo(ad); // Log ad network info
         },
         onAdFailedToLoad: (LoadAdError error) {
-          _adLoadTimer?.cancel();
           print('Failed to load a rewarded ad: ${error.message}');
         },
       ),
@@ -349,6 +367,15 @@ class _Screen1State extends State<Screen1> {
                         onPressed: () {
                           setState(() {
                             _isLoadingAd = true;
+                          });
+                          _adLoadTimer?.cancel();
+                          _adLoadTimer = Timer(Duration(seconds: 5), () {
+                            if (!_isRewardedAdReady) {
+                              setState(() {
+                                _isLoadingAd = false;
+                              });
+                              _showAdFailedDialog();
+                            }
                           });
                           if (_isRewardedAdReady) {
                             _showRewardedAd();
