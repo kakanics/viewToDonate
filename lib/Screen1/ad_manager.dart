@@ -76,6 +76,8 @@ class AdManager {
     }
   }
 
+  BannerAd get bannerAd => _bannerAd;
+
   void dispose() {
     _bannerAd.dispose();
     _rewardedAd?.dispose();

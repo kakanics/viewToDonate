@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
-import 'dart:math'; // Import for random number generation
-import '../theme.dart'; // Import the theme file
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'ad_manager.dart';
+import 'notification_manager.dart';
+import 'ad_counter_manager.dart';
+import 'ad_widget.dart';
+import '../theme.dart';
 
 class Screen1 extends StatefulWidget {
   @override
@@ -12,244 +15,33 @@ class Screen1 extends StatefulWidget {
 }
 
 class _Screen1State extends State<Screen1> {
-  late BannerAd _bannerAd;
-  RewardedAd? _rewardedAd;
-  bool _isBannerAdReady = false;
-  bool _isBannerAdFailed = false;
-  bool _isLoadingAd = false;
-  bool _isRewardedAdReady = false;
-
-  int _adCounter = 0;
-  Timer? _notificationTimer;
-  Timer? _adLoadTimer;
-
-  // Initialize the FlutterLocalNotificationsPlugin
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-
-  final double _fontSize = 20.0;
-  final Color _fontColor = AppColors.gray100;
+  late AdManager _adManager;
+  late NotificationManager _notificationManager;
+  late AdCounterManager _adCounterManager;
 
   @override
   void initState() {
     super.initState();
-    _loadAdCounter(); // Load the ad counter from local storage
+    _adManager = AdManager(onAdNetworkInfo: _logAdNetworkInfo);
+    _notificationManager = NotificationManager();
+    _adCounterManager = AdCounterManager();
 
-    // Configure test device IDs
-    MobileAds.instance.updateRequestConfiguration(
-      RequestConfiguration(
-        testDeviceIds: ['8570202E5C18D851621857424F803186'],
-      ),
-    );
-
-    // Initialize the banner ad with your actual Ad Unit ID
-    _bannerAd = BannerAd(
-      adUnitId:
-          'ca-app-pub-6158090375855987/6831552219', // Replace with your actual Ad Unit ID
-      request: AdRequest(),
-      size: AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (Ad ad) {
-          setState(() {
-            _isBannerAdReady = true;
-            _isBannerAdFailed = false;
-          });
-          _logAdNetworkInfo(ad); // Log ad network info
-        },
-        onAdFailedToLoad: (Ad ad, LoadAdError error) {
-          ad.dispose();
-          setState(() {
-            _isBannerAdReady = false;
-            _isBannerAdFailed = true;
-          });
-          print('Failed to load a banner ad: ${error.message}');
-        },
-      ),
-    )..load();
-
-    // Prefetch the rewarded ad
-    _loadRewardedAd();
-
-    // Initialize local notifications
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
-    flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
-    // Check if the ad counter needs to be reset
-    _checkAndResetAdCounter();
-  }
-
-  void _logAdNetworkInfo(Ad ad) {
-    final responseInfo = ad.responseInfo;
-    if (responseInfo != null) {
-      final adapterClassName = responseInfo.mediationAdapterClassName;
-      print('Ad served by: $adapterClassName');
-
-      if (adapterClassName != null) {
-        if (adapterClassName.contains("AdMob")) {
-          print('Ad served by: AdMob');
-        } else if (adapterClassName.contains("Vungle")) {
-          print('Ad served by: Liftoff Monetize (Vungle)');
-        } else {
-          print('Ad served by an unknown network');
-        }
-      } else {
-        print('Adapter class name is null');
-      }
-    } else {
-      print('No response info available');
-    }
-  }
-
-  Future<void> _loadAdCounter() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedAdCounter =
-        prefs.getInt('adCounter') ?? 5; // Default to 0 if not found
-    print('Loaded ad counter: $savedAdCounter'); // Debugging line
-    setState(() {
-      _adCounter = savedAdCounter;
+    _adCounterManager.loadAdCounter().then((_) {
+      _adCounterManager.checkAndResetAdCounter();
     });
+
+    _adManager.loadBannerAd();
+    _adManager.loadRewardedAd();
   }
 
-  Future<void> _saveAdCounter() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('adCounter', _adCounter);
-    print('Saved ad counter: $_adCounter'); // Debugging line
-  }
-
-  Future<void> _checkAndResetAdCounter() async {
-    final prefs = await SharedPreferences.getInstance();
-    final lastResetDate = prefs.getString('lastResetDate') ?? '';
-
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day).toString();
-
-    if (lastResetDate != today) {
-      setState(() {
-        _adCounter = 5;
-      });
-      await prefs.setString('lastResetDate', today);
-      await _saveAdCounter();
-      print('Ad counter reset to 0');
-    }
-  }
-
-  void _loadRewardedAd() {
-    AdRequest request = AdRequest();
-    RewardedAd.load(
-      adUnitId:
-          'ca-app-pub-6158090375855987/1542472608', // Replace with your actual Rewarded Ad Unit ID
-      request: request,
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (RewardedAd ad) {
-          setState(() {
-            _rewardedAd = ad;
-            _isRewardedAdReady = true;
-          });
-          _logAdNetworkInfo(ad); // Log ad network info
-        },
-        onAdFailedToLoad: (LoadAdError error) {
-          print('Failed to load a rewarded ad: ${error.message}');
-        },
-      ),
-    );
-  }
-
-  void _showRewardedAd() {
-    if (_rewardedAd != null) {
-      _rewardedAd!.show(
-        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-          setState(() {
-            _adCounter--;
-            _saveAdCounter();
-            if (_adCounter == 0) {
-              _sendNotification(
-                  "Congratulations, you've done enough for today");
-            } else if (_adCounter < 0) {
-              _adCounter = -1; // Ensure it only goes to -1 once
-            }
-          });
-        },
-      );
-      _startNotificationTimer();
-      // Prefetch the next rewarded ad
-      _loadRewardedAd();
-    } else {
-      _showAdFailedDialog();
-    }
-    setState(() {
-      _isLoadingAd = false;
-    });
-  }
-
-  void _showAdFailedDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.primary, // Set dialog background color
-          title: Text(
-            'Ad Load Failed',
-            style: TextStyle(color: Colors.white), // Set title text color
-          ),
-          content: Text(
-            'Failed to load ad. Please try again later.',
-            style: TextStyle(color: Colors.white), // Set content text color
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                'OK',
-                style: TextStyle(color: Colors.blue), // Set button text color
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _sendNotification(String message) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'default_channel',
-      'All notifications for this app',
-      importance: Importance.max,
-      priority: Priority.high,
-      showWhen: false,
-    );
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      'Ad Notification',
-      message,
-      platformChannelSpecifics,
-      payload: 'item x',
-    );
-  }
-
-  void _startNotificationTimer() {
-    _notificationTimer?.cancel();
-    _notificationTimer = Timer(Duration(seconds: 30), () {
-      if (_adCounter > 0 && _adCounter < 5) {
-        _sendNotification("Watch $_adCounter more ads to reach today's target");
-      } else if (_adCounter == 5) {}
-    });
+  void _logAdNetworkInfo(String adapterClassName) {
+    print('Ad served by: $adapterClassName');
   }
 
   @override
   void dispose() {
-    _bannerAd.dispose();
-    _rewardedAd?.dispose();
-    _adLoadTimer?.cancel();
-    // _notificationTimer?.cancel();
-    _saveAdCounter(); // Save the ad counter to local storage before disposing
+    _adManager.dispose();
+    _adCounterManager.saveAdCounter();
     super.dispose();
   }
 
@@ -262,8 +54,7 @@ class _Screen1State extends State<Screen1> {
             decoration: BoxDecoration(
               color: Colors.black,
               image: DecorationImage(
-                image: AssetImage(
-                    'assets/background.jpg'), // Replace with your image asset
+                image: AssetImage('assets/background.jpg'),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
                   Colors.black.withOpacity(0.5),
@@ -280,7 +71,6 @@ class _Screen1State extends State<Screen1> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 25.0),
                     child: Container(
-                      // height: 600, // Fixed height for the text area
                       padding: const EdgeInsets.all(16.0),
                       child: SingleChildScrollView(
                         child: Column(
@@ -300,8 +90,8 @@ class _Screen1State extends State<Screen1> {
                               '  We proudly presents a groundbreaking app designed to bring together the power of technology and community to support a greater cause. Our app is a unique platform that channels its advertising revenue to make a meaningful impact on the world. By leveraging the high CPM (Cost Per Mille) from ads, we aim to create a steady stream of income dedicated to supporting humanitarian efforts in Palestine.',
                               style: TextStyle(
                                 fontFamily: AppFonts.pregular,
-                                color: _fontColor,
-                                fontSize: _fontSize,
+                                color: AppColors.gray100,
+                                fontSize: 20.0,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -326,15 +116,13 @@ class _Screen1State extends State<Screen1> {
                               ),
                               textAlign: TextAlign.center,
                             ),
-                            SizedBox(
-                                height:
-                                    20), // Optional spacing between the two Text widgets
+                            SizedBox(height: 20),
                             Text(
                               'The primary purpose of this app is to harness the potential of ad-generated revenue to contribute to the well-being of the Palestinian people. Every ad viewed within the app translates into financial support, directly aiding those in need. By using this app, users are not only accessing valuable content but also becoming part of a larger mission to provide relief and assistance to a community that has long endured hardship.',
                               style: TextStyle(
                                 fontFamily: AppFonts.pregular,
-                                color: _fontColor,
-                                fontSize: _fontSize,
+                                color: AppColors.gray100,
+                                fontSize: 20.0,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -345,60 +133,88 @@ class _Screen1State extends State<Screen1> {
                   ),
                 ),
                 SizedBox(height: 20),
-                if (_isBannerAdReady)
-                  Container(
-                    height: _bannerAd.size.height.toDouble(),
-                    width: _bannerAd.size.width.toDouble(),
-                    child: AdWidget(ad: _bannerAd),
-                  )
-                else if (_isBannerAdFailed)
-                  Text(
-                    'Failed to load banner ad',
-                    style: TextStyle(
-                      fontFamily: AppFonts.pregular,
-                      color: Colors.red,
-                      fontSize: 16,
+                AdWidgetContainer(adManager: _adManager),
+                SizedBox(height: 15),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _adManager.isLoadingAd = true;
+                    });
+                    _adManager.showRewardedAd(
+                      onAdFailed: () {
+                        setState(() {
+                          _adManager.isLoadingAd = false;
+                        });
+                        _showAdFailedDialog();
+                      },
+                      onAdLoaded: () {
+                        setState(() {
+                          _adManager.isLoadingAd = false;
+                        });
+                      },
+                      onUserEarnedReward: () {
+                        setState(() {
+                          _adCounterManager.decrementAdCounter();
+                          if (_adCounterManager.adCounter == 0) {
+                            _notificationManager.sendNotification(
+                                "Congratulations, you've done enough for today");
+                          } else if (_adCounterManager.adCounter > 0 &&
+                              _adCounterManager.adCounter < 5) {
+                            _notificationManager.sendNotification("Watch " +
+                                _adCounterManager.adCounter.toString() +
+                                " more ads to complete today's goal");
+                          }
+                        });
+                      },
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.secondary,
+                    foregroundColor: AppColors.primary,
+                    textStyle: TextStyle(
+                      fontFamily: AppFonts.pbold,
                     ),
                   ),
-                SizedBox(height: 15),
-                _isLoadingAd
-                    ? CircularProgressIndicator()
-                    : ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _isLoadingAd = true;
-                          });
-                          _adLoadTimer?.cancel();
-                          _adLoadTimer = Timer(Duration(seconds: 5), () {
-                            if (!_isRewardedAdReady) {
-                              setState(() {
-                                _isLoadingAd = false;
-                              });
-                              _showAdFailedDialog();
-                            }
-                          });
-                          if (_isRewardedAdReady) {
-                            _showRewardedAd();
-                          } else {
-                            _loadRewardedAd();
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              AppColors.secondary, // Background color
-                          foregroundColor: AppColors.primary, // Text color
-                          textStyle: TextStyle(
-                            fontFamily: AppFonts.pbold,
-                          ),
-                        ),
-                        child: Text('View Ad'),
-                      ),
+                  child: _adManager.isLoadingAd
+                      ? CircularProgressIndicator()
+                      : Text('View Ad'),
+                ),
                 SizedBox(height: 20),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showAdFailedDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.primary,
+          title: Text(
+            'Ad Load Failed',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            'Failed to load ad. Please try again later.',
+            style: TextStyle(color: Colors.white),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'OK',
+                style: TextStyle(color: Colors.blue),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
