@@ -4,7 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'dart:math'; // Import for random number generation
-import 'theme.dart'; // Import the theme file
+import '../theme.dart'; // Import the theme file
 
 class Screen1 extends StatefulWidget {
   @override
