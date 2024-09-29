@@ -7,15 +7,21 @@ import 'firebase_options.dart';
 import 'Screen1/screen1.dart';
 import 'screen2.dart';
 import 'theme.dart';
+import 'package:gma_mediation_unity/gma_mediation_unity.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
+    FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  final gmaMediationUnity = GmaMediationUnity();
+
+  // Set GDPR and CCPA statuses
+  gmaMediationUnity.setGDPRConsent(true);
+  gmaMediationUnity.setCCPAConsent(true);
 
   MobileAds.instance.initialize().then((initializationStatus) {
     initializationStatus.adapterStatuses.forEach((key, value) {
@@ -32,7 +38,7 @@ void main() async {
 
   // Initialize the local notifications
   const AndroidInitializationSettings initializationSettingsAndroid =
-  AndroidInitializationSettings('@mipmap/ic_launcher');
+      AndroidInitializationSettings('@mipmap/ic_launcher');
 
   final InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,

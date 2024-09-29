@@ -57,6 +57,7 @@ dependencies {
     implementation  'com.google.ads.mediation:vungle:7.4.1.0'
     implementation 'com.vungle:vungle-ads:7.4.1'
     implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.ads.mediation:unity:4.8.0.0'
 
 
 }

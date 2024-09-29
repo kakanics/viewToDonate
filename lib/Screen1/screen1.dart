@@ -97,7 +97,7 @@ class _Screen1State extends State<Screen1> {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              '"5 ads a day,\n small steps today, a better tomorrow"',
+                              '"Your support can change lives; will you be the bridge between despair and hope?"',
                               style: TextStyle(
                                 fontFamily: AppFonts.pregular,
                                 color: AppColors.secondary,

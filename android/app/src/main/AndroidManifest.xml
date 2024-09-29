@@ -49,6 +49,10 @@
             android:name="com.vungle.sdk.vungleAppId"
             android:value="66db26b5655237cdd139c727 "/>
 
+        <meta-data
+            android:name="unity_game_id"
+            android:value="5705540" />
+
     </application>
 
     <!-- Required for Package Visibility (Android 11 and above) -->

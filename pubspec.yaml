@@ -17,6 +17,7 @@ dependencies:
   google_mobile_ads: ^5.1.0
   flutter_local_notifications: ^17.0.0
   unity_ads_plugin: ^0.3.20
+  gma_mediation_unity: ^1.0.0
 
 dev_dependencies:
   flutter_test:
