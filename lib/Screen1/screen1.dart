@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:async';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'ad_manager.dart';
 import 'notification_manager.dart';
 import 'ad_counter_manager.dart';
@@ -98,6 +94,16 @@ class _Screen1State extends State<Screen1> {
                             SizedBox(height: 10),
                             Text(
                               '"Your support can change lives; will you be the bridge between despair and hope?"',
+                              style: TextStyle(
+                                fontFamily: AppFonts.pregular,
+                                color: AppColors.secondary,
+                                fontSize: 18,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              '"You just have to watch 5 ads a day to support the people of Palestine"',
                               style: TextStyle(
                                 fontFamily: AppFonts.pregular,
                                 color: AppColors.secondary,
