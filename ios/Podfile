@@ -12,7 +12,7 @@ project 'Runner', {
 
 # Function to load Flutter dependencies
 def flutter_install_all_ios_pods
-  flutter_root = 'E:/flutter_windows_3.16.2-stable/flutter'
+  flutter_root = File.expand_path(ENV['FLUTTER_ROOT'])
   load File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
 end
 
