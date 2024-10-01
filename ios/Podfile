@@ -24,6 +24,7 @@ target 'Runner' do
   flutter_install_all_ios_pods
 
   # Include other pods
+  pod 'Firebase/Firestore'
   pod 'Firebase/Core'
   pod 'Firebase/Analytics'
   pod 'Google-Mobile-Ads-SDK'
