@@ -52,5 +52,5 @@ target 'Runner' do
 
   pod 'gRPC-Core'
   pod 'gRPC-C++'
-  pod 'abseil-cpp'
+  pod 'abseil-cpp', '~> 20220623.0'
 end
