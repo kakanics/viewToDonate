@@ -1,15 +1,51 @@
-# Uncomment the next line to define a global platform for your project
-platform :ios, '13  .0'
+platform :ios, '13.0'
 
-target 'Runner' do
-  # Comment the next line if you don't want to use dynamic frameworks
-  use_frameworks!
+# Disable CocoaPods analytics
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
-  # Pods for Runner
+# Define the project name
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
 
-  target 'RunnerTests' do
-    inherit! :search_paths
-    # Pods for testing
+# Post-install script to modify BoringSSL-GRPC flags
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    if target.name == 'BoringSSL-GRPC'
+      target.source_build_phase.files.each do |file|
+        if file.settings && file.settings['COMPILER_FLAGS']
+          flags = file.settings['COMPILER_FLAGS'].split
+          flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
+          file.settings['COMPILER_FLAGS'] = flags.join(' ')
+        end
+      end
+    end
   end
+end
 
+# Function to load Flutter dependencies
+def flutter_install_all_ios_pods
+  flutter_root = File.expand_path(ENV['FLUTTER_ROOT'])
+  load File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
+end
+
+# Start defining the target
+target 'Runner' do
+  use_modular_headers!
+  
+  # Uncomment or modify the use_frameworks! line if needed
+  # use_frameworks! :linkage => :static
+
+  flutter_install_all_ios_pods
+
+  # Include Firebase, Firestore, Ads, and mediation SDKs
+  pod 'FirebaseCore'
+  pod 'FirebaseAnalytics'
+  pod 'Google-Mobile-Ads-SDK'
+
+  # Ensure mediation pods are correctly specified
+  pod 'GoogleMobileAdsMediationVungle'
+  pod 'GoogleMobileAdsMediationUnity'
 end
