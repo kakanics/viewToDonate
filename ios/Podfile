@@ -43,7 +43,6 @@ target 'Runner' do
   # Include Firebase, Firestore, Ads, and mediation SDKs
   pod 'FirebaseCore'
   pod 'FirebaseAnalytics'
-  pod 'FirebaseFirestore'
   pod 'Google-Mobile-Ads-SDK'
 
   # Ensure mediation pods are correctly specified
