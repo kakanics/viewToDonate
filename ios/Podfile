@@ -52,4 +52,5 @@ target 'Runner' do
 
   pod 'gRPC-Core'
   pod 'gRPC-C++'
+  pod 'abseil-cpp'
 end
