@@ -45,5 +45,27 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Firebase Analytics -->
+	<key>FIRAnalyticsEnabled</key>
+	<true/>
+
+	<!-- Permissions for Firebase and AdMob/Ads SDKs -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+
+	<!-- AdMob permission -->
+	<key>GADIsAdManagerApp</key>
+	<false/>
+
+	<!-- Other permissions -->
+	<key>NSCameraUsageDescription</key>
+	<string>App requires access to camera for functionality</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>App requires location access</string>
+
 </dict>
 </plist>
