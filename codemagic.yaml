@@ -1,0 +1,16 @@
+workflows:
+  ios-build:
+    name: iOS Build
+    scripts:
+      - name: Install dependencies
+        script: |
+          flutter pub get
+          cd ios
+          pod install
+      - name: Build iOS app
+        script: |
+          flutter build ios --release --no-codesign
+    cache:
+      paths:
+        - ios/Pods
+        - ios/Podfile.lock

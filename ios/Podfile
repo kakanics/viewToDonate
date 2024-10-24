@@ -10,6 +10,33 @@ project 'Runner', {
   'Release' => :release,
 }
 
+# Function to load Flutter dependencies
+def flutter_install_all_ios_pods
+  flutter_root = File.expand_path(ENV['FLUTTER_ROOT'])
+  load File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
+end
+
+# Start defining the target
+target 'Runner' do
+  use_frameworks! # Test this without :linkage => :static if issues persist
+
+  flutter_install_all_ios_pods
+
+  # Firebase, Firestore, Ads, and mediation SDKs
+  pod 'gRPC-Core'
+  pod 'FirebaseCore'
+  pod 'FirebaseAnalytics'
+  pod 'FirebaseFirestore'
+  pod 'Google-Mobile-Ads-SDK'
+
+  # Mediation pods
+  pod 'GoogleMobileAdsMediationVungle'
+  pod 'GoogleMobileAdsMediationUnity'
+
+  # Optional: explicitly include cloud_firestore
+  pod 'cloud_firestore', :path => '../.ios/Pods/cloud_firestore'
+end
+
 # Post-install script to modify BoringSSL-GRPC flags
 post_install do |installer|
   installer.pods_project.targets.each do |target|
@@ -23,32 +50,4 @@ post_install do |installer|
       end
     end
   end
-end
-
-# Function to load Flutter dependencies
-def flutter_install_all_ios_pods
-  flutter_root = File.expand_path(ENV['FLUTTER_ROOT'])
-  load File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
-end
-
-# Start defining the target
-target 'Runner' do
-  use_modular_headers!
-  
-  # Uncomment or modify the use_frameworks! line if needed
-  # use_frameworks! :linkage => :static
-
-  flutter_install_all_ios_pods
-
-  # Include Firebase, Firestore, Ads, and mediation SDKs
-  pod 'gRPC-Core'
-
-  pod 'FirebaseCore'
-  pod 'FirebaseAnalytics'
-  pod 'FirebaseFirestore'
-  pod 'Google-Mobile-Ads-SDK'
-
-  # Ensure mediation pods are correctly specified
-  pod 'GoogleMobileAdsMediationVungle'
-  pod 'GoogleMobileAdsMediationUnity'
 end
