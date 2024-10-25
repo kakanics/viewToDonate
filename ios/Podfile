@@ -32,7 +32,7 @@ target 'Runner' do
   pod 'GoogleMobileAdsMediationUnity'
 end
 
-# Post-install script to modify BoringSSL-GRPC flags and handle gRPC-Core module map
+# Enhanced post-install script for gRPC-Core
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     if target.name == 'BoringSSL-GRPC'
@@ -45,6 +45,7 @@ post_install do |installer|
       end
     end
 
+    # For gRPC-Core
     if target.name == 'gRPC-Core'
       target.build_configurations.each do |config|
         config.build_settings['MODULEMAP_FILE'] = nil
