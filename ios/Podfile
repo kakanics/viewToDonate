@@ -41,8 +41,6 @@ target 'Runner' do
   flutter_install_all_ios_pods
 
   # Include Firebase, Firestore, Ads, and mediation SDKs
-  pod 'gRPC-Core'
-
   pod 'FirebaseCore'
   pod 'FirebaseAnalytics'
   pod 'FirebaseFirestore'
