@@ -1,4 +1,4 @@
-platform :ios, '15.0'
+platform :ios, '12.0'
 
 # Disable CocoaPods analytics
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -10,21 +10,6 @@ project 'Runner', {
   'Release' => :release,
 }
 
-# Post-install script to modify BoringSSL-GRPC flags
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    if target.name == 'BoringSSL-GRPC'
-      target.source_build_phase.files.each do |file|
-        if file.settings && file.settings['COMPILER_FLAGS']
-          flags = file.settings['COMPILER_FLAGS'].split
-          flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
-          file.settings['COMPILER_FLAGS'] = flags.join(' ')
-        end
-      end
-    end
-  end
-end
-
 # Function to load Flutter dependencies
 def flutter_install_all_ios_pods
   flutter_root = File.expand_path(ENV['FLUTTER_ROOT'])
@@ -34,7 +19,7 @@ end
 # Start defining the target
 target 'Runner' do
   use_modular_headers!
-  
+
   # Uncomment or modify the use_frameworks! line if needed
   # use_frameworks! :linkage => :static
 
@@ -49,4 +34,27 @@ target 'Runner' do
   # Ensure mediation pods are correctly specified
   pod 'GoogleMobileAdsMediationVungle'
   pod 'GoogleMobileAdsMediationUnity'
+end
+
+# Post-install script to modify BoringSSL-GRPC flags and handle gRPC-Core module map
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    # BoringSSL-GRPC adjustments
+    if target.name == 'BoringSSL-GRPC'
+      target.source_build_phase.files.each do |file|
+        if file.settings && file.settings['COMPILER_FLAGS']
+          flags = file.settings['COMPILER_FLAGS'].split
+          flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
+          file.settings['COMPILER_FLAGS'] = flags.join(' ')
+        end
+      end
+    end
+
+    # gRPC-Core adjustments to fix missing module map issue
+    if target.name == 'gRPC-Core'
+      target.build_configurations.each do |config|
+        config.build_settings['MODULEMAP_FILE'] = nil
+      end
+    end
+  end
 end
