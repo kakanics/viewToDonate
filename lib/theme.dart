@@ -10,7 +10,6 @@ class AppColors {
   static const Color black200 = Color(0xFF232533);
   static const Color gray100 = Color(0xFFCDCDE0);
   static const Color white = Color.fromARGB(255, 255, 255, 255);
-  static const Color red = Color.fromARGB(255,255,0,0);
 }
 
 class AppFonts {
