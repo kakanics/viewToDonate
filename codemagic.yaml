@@ -1,6 +1,9 @@
 workflows:
   ios-build:
     name: iOS Build
+    cache_paths:
+      - ios/Pods
+      - ios/Podfile.lock
     scripts:
       - name: Install dependencies
         script: |
