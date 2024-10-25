@@ -16,12 +16,8 @@ def flutter_install_all_ios_pods
   load File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
 end
 
-# Start defining the target
 target 'Runner' do
   use_modular_headers!
-
-  # Uncomment or modify the use_frameworks! line if needed
-  # use_frameworks! :linkage => :static
 
   flutter_install_all_ios_pods
 
@@ -39,7 +35,6 @@ end
 # Post-install script to modify BoringSSL-GRPC flags and handle gRPC-Core module map
 post_install do |installer|
   installer.pods_project.targets.each do |target|
-    # BoringSSL-GRPC adjustments
     if target.name == 'BoringSSL-GRPC'
       target.source_build_phase.files.each do |file|
         if file.settings && file.settings['COMPILER_FLAGS']
@@ -50,10 +45,11 @@ post_install do |installer|
       end
     end
 
-    # gRPC-Core adjustments to fix missing module map issue
     if target.name == 'gRPC-Core'
       target.build_configurations.each do |config|
         config.build_settings['MODULEMAP_FILE'] = nil
+        config.build_settings['OTHER_CFLAGS'] ||= ['']
+        config.build_settings['OTHER_CFLAGS'] << '-DPB_FIELD_32BIT'
       end
     end
   end
