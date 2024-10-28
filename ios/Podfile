@@ -17,7 +17,7 @@ end
 target 'Runner' do
   # Remove or comment out 'use_modular_headers!' if it's causing issues.
   # use_modular_headers! # Uncomment only if absolutely needed
-
+  pod 'Firebase/Firestore'
   flutter_install_all_ios_pods
 
   # Firebase and Ads SDKs with modular headers
