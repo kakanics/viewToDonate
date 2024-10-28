@@ -22,10 +22,14 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17) // Set to 17 if using Java 17
+        }
+    }
     defaultConfig {
         applicationId = "com.example.view_to_donate"
         minSdk = flutter.minSdkVersion

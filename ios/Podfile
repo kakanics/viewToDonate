@@ -1,16 +1,13 @@
 platform :ios, '12.0'
 
-# Disable CocoaPods analytics
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
-# Define the project name
 project 'Runner', {
   'Debug' => :debug,
   'Profile' => :release,
   'Release' => :release,
 }
 
-# Function to load Flutter dependencies
 def flutter_install_all_ios_pods
   flutter_root = File.expand_path(ENV['FLUTTER_ROOT'])
   load File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
@@ -21,18 +18,14 @@ target 'Runner' do
 
   flutter_install_all_ios_pods
 
-  # Include Firebase, Firestore, Ads, and mediation SDKs
-  pod 'FirebaseCore'
-  pod 'FirebaseAnalytics'
-  pod 'FirebaseFirestore'
-  pod 'Google-Mobile-Ads-SDK'
-
-  # Ensure mediation pods are correctly specified
-  pod 'GoogleMobileAdsMediationVungle'
-  pod 'GoogleMobileAdsMediationUnity'
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'FirebaseAnalytics', :modular_headers => true
+  pod 'FirebaseFirestore', :modular_headers => true
+  pod 'Google-Mobile-Ads-SDK', '>= 9.0.0'
+  pod 'GoogleMobileAdsMediationVungle', '>= 6.10.1.0'
+  pod 'GoogleMobileAdsMediationUnity', '>= 3.7.5.0'
 end
 
-# Enhanced post-install script for gRPC-Core
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     if target.name == 'BoringSSL-GRPC'
@@ -45,7 +38,6 @@ post_install do |installer|
       end
     end
 
-    # For gRPC-Core
     if target.name == 'gRPC-Core'
       target.build_configurations.each do |config|
         config.build_settings['MODULEMAP_FILE'] = nil

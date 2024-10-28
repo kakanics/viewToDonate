@@ -138,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.article),
-            label: 'Article',
+            label: 'Articles',
           ),
         ],
       ),

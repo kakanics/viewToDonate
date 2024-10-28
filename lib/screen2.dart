@@ -44,11 +44,9 @@ class Screen2 extends StatelessWidget {
                 );
               }
 
-              // If data exists, iterate through the articles and display them in a list
               return Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: ListView.separated(
-                  separatorBuilder: (context, index) => SizedBox(height: 30), // Similar to <br> for spacing
+                child: ListView.builder(
                   itemCount: snapshot.data!.docs.length,
                   itemBuilder: (context, index) {
                     var article = snapshot.data!.docs[index];
@@ -58,11 +56,19 @@ class Screen2 extends StatelessWidget {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (index > 0) // Add the line separator between articles, not before the first one
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Divider(
+                              color: AppColors.secondary,
+                              thickness: 1,
+                            ),
+                          ),
                         Text(
                           heading,
                           style: TextStyle(
                             fontFamily: AppFonts.pextrabold,
-                            color: AppColors.secondary,
+                            color: AppColors.white,
                             fontSize: 28,
                           ),
                           textAlign: TextAlign.center,
@@ -72,7 +78,7 @@ class Screen2 extends StatelessWidget {
                           content,
                           style: TextStyle(
                             fontFamily: AppFonts.pregular,
-                            color: _fontColor,
+                            color: AppColors.gray100,
                             fontSize: _fontSize,
                           ),
                           textAlign: TextAlign.left,
