@@ -35,26 +35,26 @@ target 'Runner' do
   #pod 'BoringSSL-GRPC', :modular_headers => true
 end
 
-# post_install do |installer|
-#   installer.pods_project.targets.each do |target|
-#     # Fix for BoringSSL-GRPC warnings
-#     if target.name == 'BoringSSL-GRPC'
-#       target.source_build_phase.files.each do |file|
-#         if file.settings && file.settings['COMPILER_FLAGS']
-#           flags = file.settings['COMPILER_FLAGS'].split
-#           flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
-#           file.settings['COMPILER_FLAGS'] = flags.join(' ')
-#         end
-#       end
-#     end
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    # Fix for BoringSSL-GRPC warnings
+    if target.name == 'BoringSSL-GRPC'
+      target.source_build_phase.files.each do |file|
+        if file.settings && file.settings['COMPILER_FLAGS']
+          flags = file.settings['COMPILER_FLAGS'].split
+          flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
+          file.settings['COMPILER_FLAGS'] = fl  ags.join(' ')
+        end
+      end
+    end
 
-#     # If still needed, handle gRPC-Core settings (optional: comment out if causing issues)
-#     if target.name == 'gRPC-Core'
-#       target.build_configurations.each do |config|
-#         config.build_settings['MODULEMAP_FILE'] = nil # Comment out if needed
-#         config.build_settings['OTHER_CFLAGS'] ||= ['']
-#         config.build_settings['OTHER_CFLAGS'] << '-DPB_FIELD_32BIT'
-#       end
-#     end
-#   end
-# end
+    # If still needed, handle gRPC-Core settings (optional: comment out if causing issues)
+    if target.name == 'gRPC-Core'
+      target.build_configurations.each do |config|
+        config.build_settings['MODULEMAP_FILE'] = nil # Comment out if needed
+        config.build_settings['OTHER_CFLAGS'] ||= ['']
+        config.build_settings['OTHER_CFLAGS'] << '-DPB_FIELD_32BIT'
+      end
+    end
+  end
+end
